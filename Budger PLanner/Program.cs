@@ -19,6 +19,7 @@ namespace Budget_Planner
                 Console.WriteLine("3. Список операцій");
                 Console.WriteLine("4. Підсумок по категоріях");
                 Console.WriteLine("5. Баланс та статистика");
+                Console.WriteLine("6. Сортувати записи");
                 Console.WriteLine("0. Вихід");
                 Console.Write("\nВаш вибір: ");
 
@@ -43,6 +44,10 @@ namespace Budget_Planner
                 else if (input == "5")
                 {
                     ShowStats();
+                }
+                else if (input == "6")
+                {
+                    SortRecords();
                 }
                 else if (input == "0")
                 {
@@ -103,17 +108,18 @@ namespace Budget_Planner
         static void ShowAll()
         {
             Console.Clear();
-            MoneyRecord[] data = manager.GetAllRecords();
-
-            if (data.Length == 0)
+            if (manager.Records.Count == 0)
             {
                 Console.WriteLine("Записів немає.");
             }
             else
             {
                 Console.WriteLine("Дата | Тип | Сума | Категорія");
-                foreach (MoneyRecord item in data)
+
+                var it = manager.Records.GetEnumerator();
+                while (it.MoveNext())
                 {
+                    MoneyRecord item = (MoneyRecord)it.Current;
                     string type = (item is Income) ? "Дохід" : "Витрата";
                     ICategorizable categorizable = item as ICategorizable;
                     string cat = (categorizable != null) ? categorizable.Category : "---";
@@ -176,6 +182,39 @@ namespace Budget_Planner
         {
             Console.WriteLine("\nНатисніть Enter...");
             Console.ReadLine();
+        }
+
+        static void SortRecords()
+        {
+            Console.Clear();
+            if (manager.Records.Count == 0)
+            {
+                Console.WriteLine("Немає записів для сортування.");
+                Pause();
+                return;
+            }
+
+            Console.WriteLine("Виберіть тип сортування:");
+            Console.WriteLine("1. За датою");
+            Console.WriteLine("2. За сумою");
+            string choice = Console.ReadLine();
+
+            if (choice == "1")
+            {
+                manager.Records.Sort();
+                Console.WriteLine("Записи відсортовано за датою.");
+            }
+            else if (choice == "2")
+            {
+                manager.Records.Sort(new AmountComparer());
+                Console.WriteLine("Записи відсортовано за сумою.");
+            }
+            else
+            {
+                Console.WriteLine("Невірний вибір.");
+            }
+
+            Pause();
         }
     }
 }
