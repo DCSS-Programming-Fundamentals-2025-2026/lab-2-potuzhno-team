@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Budget Planner\Budget Planner.csproj" />
+    <ProjectReference Include="..\Budger PLanner\Budget Planner.csproj" />
   </ItemGroup>
 
   <ItemGroup>

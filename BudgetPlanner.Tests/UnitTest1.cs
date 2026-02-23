@@ -2,126 +2,114 @@ using NUnit.Framework;
 using Budget_Planner.Domain.Services;
 using Budget_Planner.Domain.Records;
 using Budget_Planner.Domain.Core;
+using Budget_Planner.Domain.Collections;
+using Budget_Planner.Domain.Comparers;
 using System;
 
 namespace BudgetPlanner.Tests
 {
     public class BudgetManagerTests
     {
-
         [Test]
-        public void AddIncome_WhenCategoryLimitExceeded_ShouldNotChangeTotalIncome()
+        public void GetTotalIncome_WhenNoIncomes_ShouldReturnZero()
         {
             // Arrange
             var manager = new BudgetManager();
-
-            for (int i = 0; i < 30; i++)
-            {
-                manager.AddIncome(10, DateTime.Now, "Category" + i);
-            }
-
-            // Act
-            var result = manager.AddIncome(100, DateTime.Now, "Overflow");
-
-            // Assert
-            Assert.IsFalse(result);
-            Assert.AreEqual(300, manager.GetTotalIncome());
-        }
-
-        [Test]
-        public void AddIncome_WithNegativeValue_ShouldDecreaseTotalIncome()
-        {
-            // Arrange
-            var manager = new BudgetManager();
-            manager.AddIncome(100, DateTime.Now, "Salary");
-
-            // Act
-            manager.AddIncome(-50, DateTime.Now, "Adjustment");
-            var totalIncome = manager.GetTotalIncome();
-
-            // Assert
-            Assert.AreEqual(50, totalIncome);
-        }
-
-
-        [Test]
-        public void GetTotalIncome_SumOfIncome_ShouldReturnCorrectSum()
-        {
-            // Arrange
-            var manager = new BudgetManager();
-
-            manager.AddIncome(100, DateTime.Now, "Salary");
-            manager.AddIncome(50, DateTime.Now, "Freelance");
 
             // Act
             var totalIncome = manager.GetTotalIncome();
 
             // Assert
-            Assert.AreEqual(150, totalIncome);
+            Assert.AreEqual(0m, totalIncome);
         }
 
         [Test]
-        public void GetTotalIncome_WhenNoRecords_ShouldReturnZero()
+        public void GetTotalIncome_WhenMultipleIncomes_ShouldReturnCorrectSum()
         {
             // Arrange
             var manager = new BudgetManager();
+            manager.AddIncome(1000m, DateTime.Now, "Salary");
+            manager.AddIncome(500m, DateTime.Now, "Bonus");
+            manager.AddExpense(200m, DateTime.Now, "Food");
 
             // Act
-            var result = manager.GetTotalIncome();
+            var totalIncome = manager.GetTotalIncome();
 
             // Assert
-            Assert.AreEqual(0, result);
+            Assert.AreEqual(1500m, totalIncome);
         }
 
-
         [Test]
-        public void GetTotalExpense_SumOfExpenses_ShouldReturnCorrectSum()
+        public void GetTotalExpense_WhenNoExpenses_ShouldReturnZero()
         {
             // Arrange
             var manager = new BudgetManager();
-
-            manager.AddExpense(30, DateTime.Now, "Groceries");
-            manager.AddExpense(20, DateTime.Now, "Transport");
 
             // Act
             var totalExpense = manager.GetTotalExpense();
 
             // Assert
-            Assert.AreEqual(50, totalExpense);
-
+            Assert.AreEqual(0m, totalExpense);
         }
 
         [Test]
-        public void GetBalance_IncomeAndExpense_ShouldReturnCorrectBalance()
+        public void GetTotalExpense_WhenMultipleExpenses_ShouldReturnCorrectSum()
         {
             // Arrange
             var manager = new BudgetManager();
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Utilities");
+            manager.AddIncome(2000m, DateTime.Now, "Salary");
 
-            manager.AddIncome(200, DateTime.Now, "Salary");
-            manager.AddExpense(50, DateTime.Now, "Groceries");
+            // Act
+            var totalExpense = manager.GetTotalExpense();
+
+            // Assert
+            Assert.AreEqual(450m, totalExpense);
+        }
+
+        [Test]
+        public void GetBalance_WhenIncomesAndExpenses_ShouldReturnCorrectBalance()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            manager.AddIncome(2000m, DateTime.Now, "Salary");
+            manager.AddExpense(500m, DateTime.Now, "Rent");
+            manager.AddExpense(200m, DateTime.Now, "Food");
 
             // Act
             var balance = manager.GetBalance();
 
             // Assert
-            Assert.AreEqual(150, balance);
+            Assert.AreEqual(1300m, balance);
         }
 
         [Test]
-        public void GetMinExpense_WhenManyExpenses_ShouldReturnMinExpense()
+        public void GetBalance_WhenNoRecords_ShouldReturnZero()
         {
             // Arrange
             var manager = new BudgetManager();
 
-            manager.AddExpense(100, DateTime.Now, "Food");
-            manager.AddExpense(50, DateTime.Now, "Taxi");
-            manager.AddExpense(30, DateTime.Now, "Entertainment");
-
             // Act
-            var minExpense = manager.GetMinExpense();
+            var balance = manager.GetBalance();
 
             // Assert
-            Assert.AreEqual(30, minExpense.Amount);
+            Assert.AreEqual(0m, balance);
+        }
+
+        [Test]
+        public void GetBalance_WhenOnlyExpenses_ShouldReturnNegativeBalance()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Utilities");
+
+            // Act
+            var balance = manager.GetBalance();
+
+            // Assert
+            Assert.AreEqual(-450m, balance);
 
         }
 
@@ -132,28 +120,40 @@ namespace BudgetPlanner.Tests
             var manager = new BudgetManager();
 
             // Act
-            var result = manager.GetMinExpense();
+            var minExpense = manager.GetMinExpense();
 
             // Assert
-            Assert.IsNull(result);
+            Assert.IsNull(minExpense);
         }
 
-
         [Test]
-        public void GetMaxExpense_WhenManyExpenses_ShouldReturnMaxExpense()
+        public void GetMinExpense_WhenMultipleExpenses_ShouldReturnMinimumExpense()
         {
             // Arrange
             var manager = new BudgetManager();
-
-            manager.AddExpense(100, DateTime.Now, "Food");
-            manager.AddExpense(50, DateTime.Now, "Taxi");
-            manager.AddExpense(30, DateTime.Now, "Entertainment");
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Utilities");
+            manager.AddExpense(50m, DateTime.Now, "Food");
 
             // Act
-            var maxExpense = manager.GetMaxExpense();
+            var minExpense = manager.GetMinExpense();
 
             // Assert
-            Assert.AreEqual(100, maxExpense.Amount);
+            Assert.AreEqual(50m, minExpense.Amount);
+        }
+
+        [Test]
+        public void GetMinExpence_WhenOnlyOneExpense_ShouldReturnThatExpense()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            manager.AddExpense(200m, DateTime.Now, "Rent");
+
+            // Act
+            var minExpense = manager.GetMinExpense();
+
+            // Assert
+            Assert.AreEqual(200m, minExpense.Amount);
         }
 
         [Test]
@@ -163,38 +163,44 @@ namespace BudgetPlanner.Tests
             var manager = new BudgetManager();
 
             // Act
-            var result = manager.GetMaxExpense();
+            var maxExpense = manager.GetMaxExpense();
 
             // Assert
-            Assert.IsNull(result);
+            Assert.IsNull(maxExpense);
         }
 
         [Test]
-        public void GetCategorySummary_WhenMultipleCategories_ShouldReturnCorrectSummary()
+        public void GetMaxExpense_WhenMultipleExpenses_ShouldReturnMaximumExpense()
         {
             // Arrange
             var manager = new BudgetManager();
-
-            manager.AddExpense(100, DateTime.Now, "Food");
-            manager.AddExpense(50, DateTime.Now, "Taxi");
-            manager.AddExpense(30, DateTime.Now, "Entertainment");
-            manager.AddExpense(20, DateTime.Now, "Food");
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Utilities");
+            manager.AddExpense(50m, DateTime.Now, "Food");
 
             // Act
-            manager.GetCategorySummary(out string[] categories, out decimal[] sums, out int count);
+            var maxExpense = manager.GetMaxExpense();
 
             // Assert
-            Assert.AreEqual(3, count);
-            Assert.AreEqual("Food", categories[0]);
-            Assert.AreEqual("Taxi", categories[1]);
-            Assert.AreEqual("Entertainment", categories[2]);
-            Assert.AreEqual(120, sums[0]);
-            Assert.AreEqual(50, sums[1]);
-            Assert.AreEqual(30, sums[2]);
+            Assert.AreEqual(300m, maxExpense.Amount);
         }
 
         [Test]
-        public void GetCategorySummary_WhenNoRecords_ShouldReturnEmptySummary()
+        public void GetMaxExpense_WhenOnlyOneExpense_ShouldReturnThatExpense()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            manager.AddExpense(200m, DateTime.Now, "Rent");
+
+            // Act
+            var maxExpense = manager.GetMaxExpense();
+
+            // Assert
+            Assert.AreEqual(200m, maxExpense.Amount);
+        }
+
+        [Test]
+        public void GetCategorySummary_WhenNoRecords_ShouldReturnEmptyArrays()
         {
             // Arrange
             var manager = new BudgetManager();
@@ -209,47 +215,273 @@ namespace BudgetPlanner.Tests
         }
 
         [Test]
-        public void GetAllRecords_WhenMultipleRecords_ShouldReturnAllRecords()
+        public void GetCategorySummary_WhenMultipleRecords_ShouldReturnCorrectSummary()
         {
             // Arrange
             var manager = new BudgetManager();
-
-            manager.AddIncome(100, DateTime.Now, "Salary");
-            manager.AddExpense(50, DateTime.Now, "Groceries");
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Utilities");
+            manager.AddExpense(50m, DateTime.Now, "Food");
 
             // Act
-            var records = manager.GetAllRecords();
+            manager.GetCategorySummary(out string[] categories, out decimal[] sums, out int count);
 
             // Assert
-            Assert.AreEqual(2, records.Length);
-            Assert.IsTrue(records[0] is Income);
-            Assert.IsTrue(records[1] is Expense);
+            Assert.AreEqual(3, count);
+            Assert.Contains("Rent", categories);
+            Assert.Contains("Utilities", categories);
+            Assert.Contains("Food", categories);
+            Assert.AreEqual(300m, sums[Array.IndexOf(categories, "Rent")]);
+            Assert.AreEqual(150m, sums[Array.IndexOf(categories, "Utilities")]);
+            Assert.AreEqual(50m, sums[Array.IndexOf(categories, "Food")]);
         }
 
         [Test]
-        public void GetAllRecords_WhenNoRecords_ShouldReturnEmptyArray()
+        public void GetCategorySummary_WhenMultipleRecordsWithSameCategory_ShouldSumAmounts()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            manager.AddExpense(100m, DateTime.Now, "Food");
+            manager.AddExpense(50m, DateTime.Now, "Food");
+            manager.AddExpense(25m, DateTime.Now, "Food");
+
+            // Act
+            manager.GetCategorySummary(out string[] categories, out decimal[] sums, out int count);
+
+            // Assert
+            Assert.AreEqual(1, count);
+            Assert.Contains("Food", categories);
+            Assert.AreEqual(175m, sums[Array.IndexOf(categories, "Food")]);
+        }
+
+        [Test]
+        public void AddIncome_WhenAmountIsZero_ShouldReturnFalse()
         {
             // Arrange
             var manager = new BudgetManager();
 
             // Act
-            var records = manager.GetAllRecords();
+            var result = manager.AddIncome(0m, DateTime.Now, "Salary");
 
             // Assert
-            Assert.IsEmpty(records);
+            Assert.IsFalse(result);
         }
 
         [Test]
-        public void FullScenario_ShouldReturnCorrectFinancialResults()
+        public void AddIncome_WhenAmountIsNegative_ShouldNotIncreaseCount()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            var initialCount = manager.Records.Count;
+
+            // Act
+            var result = manager.AddIncome(-100m, DateTime.Now, "Salary");
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.AreEqual(initialCount, manager.Records.Count);
+        }
+
+        [Test]
+        public void AddIncome_WhenLimitExceeded_ShouldReturnFalse()
         {
             // Arrange
             var manager = new BudgetManager();
 
-            manager.AddIncome(1000, DateTime.Now, "Salary");
-            manager.AddIncome(500, DateTime.Now, "Freelance");
-            manager.AddExpense(200, DateTime.Now, "Food");
-            manager.AddExpense(100, DateTime.Now, "Taxi");
-            manager.AddExpense(50, DateTime.Now, "Food");
+            for (int i = 0; i < 500; i++)
+            {
+                manager.AddIncome(1m, DateTime.Now, "Salary");
+            }
+
+            // Act
+            var result = manager.AddIncome(1m, DateTime.Now, "Salary");
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void AddExpense_WhenAmountIsZero_ShouldReturnFalse()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+
+            // Act
+            var result = manager.AddExpense(0m, DateTime.Now, "Food");
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void AddExpense_WhenAmountIsNegative_ShouldNotIncreaseCount()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+            var initialCount = manager.Records.Count;
+
+            // Act
+            var result = manager.AddExpense(-100m, DateTime.Now, "Food");
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.AreEqual(initialCount, manager.Records.Count);
+        }
+
+        [Test]
+        public void AddExpense_WhenLimitExceeded_ShouldReturnFalse()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+
+            for (int i = 0; i < 500; i++)
+            {
+                manager.AddExpense(1m, DateTime.Now, "Food");
+            }
+
+            // Act
+            var result = manager.AddExpense(1m, DateTime.Now, "Food");
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void Add_WhenCalled_ShouldIncreaseCount()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+            var record = new Income(100m, DateTime.Now, "Salary");
+
+            // Act
+            collection.Add(record);
+
+            // Assert
+            Assert.AreEqual(1, collection.Count);
+        }
+
+        [Test]
+        public void Add_WhenCalled_ShouldStoreCorrectElement()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+            var record = new Income(100m, DateTime.Now, "Salary");
+
+            // Act
+            collection.Add(record);
+
+            // Assert
+            var stored = collection.GetAt(0);
+            Assert.AreEqual(record, stored);
+        }
+
+        [Test]
+        public void RemoveAt_WhenCalled_ShouldDecreaseCount()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+            var record = new Income(100m, DateTime.Now, "Salary");
+            collection.Add(record);
+
+            // Act
+            collection.RemoveAt(0);
+
+            // Assert
+            Assert.AreEqual(0, collection.Count);
+        }
+
+        [Test]
+        public void RemoveAt_WhenCalled_ShouldShiftElementsCorrectly()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+            var record1 = new Income(100m, DateTime.Now, "Salary");
+            var record2 = new Expense(50m, DateTime.Now, "Food");
+            collection.Add(record1);
+            collection.Add(record2);
+
+            // Act
+            collection.RemoveAt(0);
+            // Assert
+
+            var stored = collection.GetAt(0);
+            Assert.AreEqual(record2, stored);
+        }
+
+        [Test]
+        public void RemoveAt_WhenDeleteLastElement_ShouldSetNull()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+            var record1 = new Income(100m, DateTime.Now, "Salary");
+            var record2 = new Expense(50m, DateTime.Now, "Food");
+            collection.Add(record1);
+            collection.Add(record2);
+
+            // Act
+            collection.RemoveAt(1);
+
+            // Assert
+            Assert.Throws<IndexOutOfRangeException>(() => collection.GetAt(1));
+        }
+
+        [Test]
+        public void Sort_WhenCalled_ShouldSortByDateAscending()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+
+            var record1 = new Income(100m, new DateTime(2024, 1, 1), "Salary");
+            var record2 = new Expense(50m, new DateTime(2023, 12, 12), "Food");
+
+            collection.Add(record1);
+            collection.Add(record2);
+
+            // Act
+            collection.Sort();
+
+            // Assert
+            var first = collection.GetAt(0);
+            var second = collection.GetAt(1);
+
+            Assert.AreEqual(record2, first);
+            Assert.AreEqual(record1, second);
+        }
+
+        [Test]
+        public void Sort_WhenCalledWithAmountComparer_ShouldSortByAmountAscending()
+        {
+            // Arrange
+            var collection = new MoneyRecordCollection();
+
+            var record1 = new Income(100m, new DateTime(2024, 1, 1), "Salary");
+            var record2 = new Expense(50m, new DateTime(2023, 12, 12), "Food");
+
+            collection.Add(record1);
+            collection.Add(record2);
+
+            // Act
+            collection.Sort(new AmountComparer());
+
+            // Assert
+            var first = collection.GetAt(0);
+            var second = collection.GetAt(1);
+
+            Assert.AreEqual(record2, first);
+            Assert.AreEqual(record1, second);
+        }
+
+        [Test]
+        public void Integration_FullFinancialScenario_ShouldReturnCorrectStatistics()
+        {
+            // Arrange
+            var manager = new BudgetManager();
+
+            manager.AddIncome(2000m, DateTime.Now, "Salary");
+            manager.AddIncome(500m, DateTime.Now, "Bonus");
+
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(200m, DateTime.Now, "Food");
 
             // Act
             var totalIncome = manager.GetTotalIncome();
@@ -257,51 +489,34 @@ namespace BudgetPlanner.Tests
             var balance = manager.GetBalance();
 
             // Assert
-            Assert.AreEqual(1500, totalIncome);
-            Assert.AreEqual(350, totalExpense);
-            Assert.AreEqual(1150, balance);
+            Assert.AreEqual(2500m, totalIncome);
+            Assert.AreEqual(500m, totalExpense);
+            Assert.AreEqual(2000m, balance);
         }
 
         [Test]
-        public void FullScenario_ShouldReturnCorrectStatistics()
+        public void Integration_CategorySummaryAndMinExpense_ShouldReturnCorrectData()
         {
             // Arrange
             var manager = new BudgetManager();
 
-            manager.AddIncome(1000, DateTime.Now, "Salary");
-            manager.AddIncome(500, DateTime.Now, "Freelance");
-            manager.AddExpense(200, DateTime.Now, "Food");
-            manager.AddExpense(100, DateTime.Now, "Taxi");
-            manager.AddExpense(50, DateTime.Now, "Food");
+            manager.AddExpense(300m, DateTime.Now, "Rent");
+            manager.AddExpense(150m, DateTime.Now, "Food");
+            manager.AddExpense(50m, DateTime.Now, "Food");
+            manager.AddExpense(400m, DateTime.Now, "Utilities");
 
             // Act
-            var min = manager.GetMinExpense();
-            var max = manager.GetMaxExpense();
             manager.GetCategorySummary(out string[] categories, out decimal[] sums, out int count);
+            var minExpense = manager.GetMinExpense();
 
             // Assert
-            Assert.AreEqual(50, min.Amount);
-            Assert.AreEqual(200, max.Amount);
-            Assert.AreEqual(2, count);
-        }
+            Assert.AreEqual(3, count);
 
-        [Test]
-        public void FullScenario_WithOverflow_ShouldKeepStateConsistent()
-        {
-            // Arrange
-            var manager = new BudgetManager();
+            Assert.AreEqual(300m, sums[Array.IndexOf(categories, "Rent")]);
+            Assert.AreEqual(200m, sums[Array.IndexOf(categories, "Food")]);
+            Assert.AreEqual(400m, sums[Array.IndexOf(categories, "Utilities")]);
 
-            for (int i = 0; i < 500; i++)
-            {
-                manager.AddIncome(10, DateTime.Now, "Test");
-            }
-
-            // Act
-            var result = manager.AddIncome(100, DateTime.Now, "Overflow");
-
-            // Assert
-            Assert.IsFalse(result);
-            Assert.AreEqual(5000, manager.GetTotalIncome());
+            Assert.AreEqual(50m, minExpense.Amount);
         }
     }
 }

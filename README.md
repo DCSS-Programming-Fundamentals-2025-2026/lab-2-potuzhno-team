@@ -1,1 +1,36 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/ARgxkcrJ)
+# Budget Planner
+
+## 3.1 Ролі
+
+QA - Русаков Іван  
+Core - Безбородов Іван
+
+## 3.2 Як запускати тести
+
+1. Відкрити solution у Visual Studio.
+2. Зібрати проєкт.
+3. Відкрити Test Explorer.
+4. Натиснути Run All для запуску всіх тестів.
+
+## 3.3 Як перевірити функціонал
+
+### List через Enumerator
+У меню вибрати пункт перегляду списку операцій.  
+Записи виводяться через власну реалізацію IEnumerable / IEnumerator.
+
+### Sort (default)
+У меню вибрати пункт сортування за датою.  
+Сортування відбувається через IComparable (CompareTo).
+
+### Sort (альтернативне)
+У меню вибрати пункт сортування за сумою.  
+Сортування відбувається через клас AmountComparer (IComparer).
+
+### Stats
+У меню вибрати пункт статистики.  
+Відображається:
+- Загальна сума доходів
+- Загальна сума витрат
+- Баланс
+- Мінімальна та максимальна витрата
+- Підсумок по категоріях

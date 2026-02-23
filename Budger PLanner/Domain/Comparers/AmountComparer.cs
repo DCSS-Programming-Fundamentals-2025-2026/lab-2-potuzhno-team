@@ -1,5 +1,6 @@
+using Budget_Planner.Domain.Core;
 using System.Collections;
-namespace Budget_Planner;
+namespace Budget_Planner.Domain.Comparers;
 
 public class AmountComparer : IComparer
 {

@@ -1,4 +1,10 @@
-﻿using System;
+﻿using Budget_Planner.Domain.Core;
+using Budget_Planner.Domain.Records;
+using Budget_Planner.Domain.Services;
+using Budget_Planner.Domain.Comparers;
+using Budget_Planner.Domain.Collections;
+using System;
+using System.Text;
 
 namespace Budget_Planner
 {
@@ -8,6 +14,9 @@ namespace Budget_Planner
 
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
             bool running = true;
 
             while (running)
@@ -120,7 +129,7 @@ namespace Budget_Planner
                 while (it.MoveNext())
                 {
                     MoneyRecord item = (MoneyRecord)it.Current;
-                    string type = (item is Income) ? "Дохід" : "Витрата";
+                    string type = item.Type == RecordType.Income ? "Дохід" : "Витрата";
                     ICategorizable categorizable = item as ICategorizable;
                     string cat = (categorizable != null) ? categorizable.Category : "---";
 

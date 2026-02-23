@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Budget_Planner
+namespace Budget_Planner.Domain.Core
 {
     public interface ICategorizable
     {

@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Budget_Planner.Domain.Collections;
+using Budget_Planner.Domain.Core;
+using Budget_Planner.Domain.Records;
+using System;
 
 
-namespace Budget_Planner
+namespace Budget_Planner.Domain.Services
 {
     public class BudgetManager
     {
@@ -32,6 +35,10 @@ namespace Budget_Planner
 
         public bool AddIncome(decimal amount, DateTime date, string category)
         {
+            if (amount <= 0)
+            {
+                return false;
+            }
             if (Records.Count >= 500)
             {
                 return false;
@@ -48,6 +55,10 @@ namespace Budget_Planner
 
         public bool AddExpense(decimal amount, DateTime date, string category)
         {
+            if (amount <= 0)
+            {
+                return false;
+            }
             if (Records.Count >= 500)
             {
                 return false;
@@ -80,10 +91,11 @@ namespace Budget_Planner
 
             for (int i = 0; i < Records.Count; i++)
             {
-                Income income = Records.GetAt(i) as Income;
-                if (income != null)
+                MoneyRecord record = Records.GetAt(i);
+
+                if (record.Type == RecordType.Income)
                 {
-                    sum += income.Amount;
+                    sum += record.Amount;
                 }
             }
 
@@ -96,10 +108,11 @@ namespace Budget_Planner
 
             for (int i = 0; i < Records.Count; i++)
             {
-                Expense expense = Records.GetAt(i) as Expense;
-                if (expense != null)
+                MoneyRecord record = Records.GetAt(i);
+
+                if (record.Type == RecordType.Expense)
                 {
-                    sum += expense.Amount;
+                    sum += record.Amount;
                 }
             }
 
@@ -117,9 +130,12 @@ namespace Budget_Planner
 
             for (int i = 0; i < Records.Count; i++)
             {
-                Expense expense = Records.GetAt(i) as Expense;
-                if (expense != null)
+                MoneyRecord record = Records.GetAt(i);
+
+                if (record.Type == RecordType.Expense)
                 {
+                    Expense expense = (Expense)record;
+
                     if (min == null || expense.Amount < min.Amount)
                     {
                         min = expense;
@@ -136,9 +152,12 @@ namespace Budget_Planner
 
             for (int i = 0; i < Records.Count; i++)
             {
-                Expense expense = Records.GetAt(i) as Expense;
-                if (expense != null)
+                MoneyRecord record = Records.GetAt(i);
+
+                if (record.Type == RecordType.Expense)
                 {
+                    Expense expense = (Expense)record;
+
                     if (max == null || expense.Amount > max.Amount)
                     {
                         max = expense;
@@ -157,9 +176,12 @@ namespace Budget_Planner
 
             for (int i = 0; i < Records.Count; i++)
             {
-                Expense expense = Records.GetAt(i) as Expense;
-                if (expense != null)
+                MoneyRecord record = Records.GetAt(i);
+
+                if (record.Type == RecordType.Expense)
                 {
+                    Expense expense = (Expense)record;
+
                     bool found = false;
 
                     for (int j = 0; j < resultCount; j++)
